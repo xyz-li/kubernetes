@@ -539,11 +539,16 @@ func (c *Cacher) Watch(ctx context.Context, key string, opts storage.ListOptions
 
 	// determine the namespace and name scope of the watch, first from the request, secondarily from the field selector
 	scope := namespacedName{}
-	if requestNamespace, ok := request.NamespaceFrom(ctx); ok && len(requestNamespace) > 0 {
-		scope.namespace = requestNamespace
-	} else if selectorNamespace, ok := pred.Field.RequiresExactMatch("metadata.namespace"); ok {
-		scope.namespace = selectorNamespace
+
+	// for request like '/api/v1/watch/namespaces/*', don't set scope.namespace.
+	if c.groupResource.Resource != "namespaces" {
+		if requestNamespace, ok := request.NamespaceFrom(ctx); ok && len(requestNamespace) > 0 {
+			scope.namespace = requestNamespace
+		} else if selectorNamespace, ok := pred.Field.RequiresExactMatch("metadata.namespace"); ok {
+			scope.namespace = selectorNamespace
+		}
 	}
+
 	if requestInfo, ok := request.RequestInfoFrom(ctx); ok && requestInfo != nil && len(requestInfo.Name) > 0 {
 		scope.name = requestInfo.Name
 	} else if selectorName, ok := pred.Field.RequiresExactMatch("metadata.name"); ok {
