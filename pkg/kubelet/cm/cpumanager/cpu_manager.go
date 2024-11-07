@@ -54,7 +54,7 @@ const cpuManagerStateFileName = "cpu_manager_state"
 // Manager interface provides methods for Kubelet to manage pod cpus.
 type Manager interface {
 	// Start is called during Kubelet initialization.
-	Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, podStatusProvider status.PodStatusProvider, containerRuntime runtimeService, initialContainers containermap.ContainerMap) error
+	Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, podStatusProvider status.PodStatusProvider, containerRuntime runtimeService, initialContainers *containermap.ContainerMapWithLock) error
 
 	// Called to trigger the allocation of CPUs to a container. This must be
 	// called at some point prior to the AddContainer() call for a container,
@@ -127,7 +127,7 @@ type manager struct {
 
 	// containerMap provides a mapping from (pod, container) -> containerID
 	// for all containers a pod
-	containerMap containermap.ContainerMap
+	containerMap *containermap.ContainerMapWithLock
 
 	topology *topology.CPUTopology
 
@@ -217,7 +217,7 @@ func NewManager(cpuPolicyName string, cpuPolicyOptions map[string]string, reconc
 	return manager, nil
 }
 
-func (m *manager) Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, podStatusProvider status.PodStatusProvider, containerRuntime runtimeService, initialContainers containermap.ContainerMap) error {
+func (m *manager) Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, podStatusProvider status.PodStatusProvider, containerRuntime runtimeService, initialContainers *containermap.ContainerMapWithLock) error {
 	klog.InfoS("Starting CPU manager", "policy", m.policy.Name())
 	klog.InfoS("Reconciling", "reconcilePeriod", m.reconcilePeriod)
 	m.sourcesReady = sourcesReady

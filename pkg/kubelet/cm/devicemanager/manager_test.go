@@ -292,7 +292,7 @@ func setupDeviceManager(t *testing.T, devs []*pluginapi.Device, callback monitor
 
 	// test steady state, initialization where sourcesReady, containerMap and containerRunningSet
 	// are relevant will be tested with a different flow
-	err = w.Start(activePods, &sourcesReadyStub{}, containermap.NewContainerMap(), sets.New[string]())
+	err = w.Start(activePods, &sourcesReadyStub{}, containermap.NewContainerMapWithLock(), sets.New[string]())
 	require.NoError(t, err)
 
 	return w, updateChan

@@ -35,7 +35,7 @@ import (
 // Manager manages all the Device Plugins running on a node.
 type Manager interface {
 	// Start starts device plugin registration service.
-	Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, initialContainers containermap.ContainerMap, initialContainerRunningSet sets.Set[string]) error
+	Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, initialContainers *containermap.ContainerMapWithLock, initialContainerRunningSet sets.Set[string]) error
 
 	// Allocate configures and assigns devices to a container in a pod. From
 	// the requested device resources, Allocate will communicate with the

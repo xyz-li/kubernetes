@@ -36,11 +36,11 @@ type stateCheckpoint struct {
 	cache             State
 	checkpointManager checkpointmanager.CheckpointManager
 	checkpointName    string
-	initialContainers containermap.ContainerMap
+	initialContainers *containermap.ContainerMapWithLock
 }
 
 // NewCheckpointState creates new State for keeping track of cpu/pod assignment with checkpoint backend
-func NewCheckpointState(stateDir, checkpointName, policyName string, initialContainers containermap.ContainerMap) (State, error) {
+func NewCheckpointState(stateDir, checkpointName, policyName string, initialContainers *containermap.ContainerMapWithLock) (State, error) {
 	checkpointManager, err := checkpointmanager.NewCheckpointManager(stateDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize checkpoint manager: %v", err)

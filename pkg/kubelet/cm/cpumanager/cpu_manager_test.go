@@ -327,7 +327,7 @@ func TestCPUManagerAdd(t *testing.T) {
 			containerRuntime: mockRuntimeService{
 				err: testCase.updateErr,
 			},
-			containerMap:      containermap.NewContainerMap(),
+			containerMap:      containermap.NewContainerMapWithLock(),
 			podStatusProvider: mockPodStatusProvider{},
 			sourcesReady:      &sourcesReadyStub{},
 		}
@@ -553,7 +553,7 @@ func TestCPUManagerAddWithInitContainers(t *testing.T) {
 			state:             mockState,
 			lastUpdateState:   state.NewMemoryState(),
 			containerRuntime:  mockRuntimeService{},
-			containerMap:      containermap.NewContainerMap(),
+			containerMap:      containermap.NewContainerMapWithLock(),
 			podStatusProvider: mockPodStatusProvider{},
 			sourcesReady:      &sourcesReadyStub{},
 			activePods: func() []*v1.Pod {
@@ -729,7 +729,7 @@ func TestCPUManagerRemove(t *testing.T) {
 	}
 
 	containerID := "fakeID"
-	containerMap := containermap.NewContainerMap()
+	containerMap := containermap.NewContainerMapWithLock()
 
 	mgr := &manager{
 		policy: &mockPolicy{
@@ -1239,7 +1239,7 @@ func TestReconcileState(t *testing.T) {
 			containerRuntime: mockRuntimeService{
 				err: testCase.updateErr,
 			},
-			containerMap: containermap.NewContainerMap(),
+			containerMap: containermap.NewContainerMapWithLock(),
 			activePods: func() []*v1.Pod {
 				return testCase.activePods
 			},
@@ -1347,7 +1347,7 @@ func TestCPUManagerAddWithResvList(t *testing.T) {
 			containerRuntime: mockRuntimeService{
 				err: testCase.updateErr,
 			},
-			containerMap:      containermap.NewContainerMap(),
+			containerMap:      containermap.NewContainerMapWithLock(),
 			podStatusProvider: mockPodStatusProvider{},
 			sourcesReady:      &sourcesReadyStub{},
 		}
@@ -1493,7 +1493,7 @@ func TestCPUManagerGetAllocatableCPUs(t *testing.T) {
 				defaultCPUSet: cpuset.New(0, 1, 2, 3),
 			},
 			lastUpdateState:   state.NewMemoryState(),
-			containerMap:      containermap.NewContainerMap(),
+			containerMap:      containermap.NewContainerMapWithLock(),
 			podStatusProvider: mockPodStatusProvider{},
 			sourcesReady:      &sourcesReadyStub{},
 		}

@@ -104,7 +104,7 @@ type ManagerImpl struct {
 
 	// containerMap provides a mapping from (pod, container) -> containerID
 	// for all containers in a pod. Used to detect pods running across a restart
-	containerMap containermap.ContainerMap
+	containerMap *containermap.ContainerMapWithLock
 
 	// containerRunningSet identifies which container among those present in `containerMap`
 	// was reported running by the container runtime when `containerMap` was computed.
@@ -340,7 +340,7 @@ func (m *ManagerImpl) checkpointFile() string {
 // Start starts the Device Plugin Manager and start initialization of
 // podDevices and allocatedDevices information from checkpointed state and
 // starts device plugin registration service.
-func (m *ManagerImpl) Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, initialContainers containermap.ContainerMap, initialContainerRunningSet sets.Set[string]) error {
+func (m *ManagerImpl) Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, initialContainers *containermap.ContainerMapWithLock, initialContainerRunningSet sets.Set[string]) error {
 	klog.V(2).InfoS("Starting Device Plugin manager")
 
 	m.activePods = activePods

@@ -63,7 +63,7 @@ func hardEvictionReservation(thresholds []evictionapi.Threshold, capacity v1.Res
 	return ret
 }
 
-func buildContainerMapAndRunningSetFromRuntime(ctx context.Context, runtimeService internalapi.RuntimeService) (containermap.ContainerMap, sets.Set[string]) {
+func buildContainerMapAndRunningSetFromRuntime(ctx context.Context, runtimeService internalapi.RuntimeService) (*containermap.ContainerMapWithLock, sets.Set[string]) {
 	podSandboxMap := make(map[string]string)
 	podSandboxList, _ := runtimeService.ListPodSandbox(ctx, nil)
 	for _, p := range podSandboxList {
@@ -71,7 +71,7 @@ func buildContainerMapAndRunningSetFromRuntime(ctx context.Context, runtimeServi
 	}
 
 	runningSet := sets.New[string]()
-	containerMap := containermap.NewContainerMap()
+	containerMap := containermap.NewContainerMapWithLock()
 	containerList, _ := runtimeService.ListContainers(ctx, nil)
 	for _, c := range containerList {
 		if _, exists := podSandboxMap[c.PodSandboxId]; !exists {
