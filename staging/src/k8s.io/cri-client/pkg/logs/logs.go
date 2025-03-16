@@ -323,6 +323,7 @@ func ReadLogs(ctx context.Context, logger *klog.Logger, path, containerID string
 	r := bufio.NewReader(f)
 	// Do not create watcher here because it is not needed if `Follow` is false.
 	var watcher *fsnotify.Watcher
+	var dedupWatcher *dedupWriteEvents
 	var parse parseFunc
 	var stop bool
 	isNewLine := true
@@ -356,17 +357,22 @@ func ReadLogs(ctx context.Context, logger *klog.Logger, path, containerID string
 					if watcher, err = fsnotify.NewWatcher(); err != nil {
 						return fmt.Errorf("failed to create fsnotify watcher: %v", err)
 					}
+
+					dedupWatcher = newDedupWriteEvents(baseName, watcher)
+					go dedupWatcher.dedupLoop()
+
 					defer watcher.Close()
 					if err := watcher.Add(dir); err != nil {
 						return fmt.Errorf("failed to watch directory %q: %w", dir, err)
 					}
+
 					// If we just created the watcher, try again to read as we might have missed
 					// the event.
 					continue
 				}
 				var recreated bool
 				// Wait until the next log change.
-				found, recreated, err = waitLogs(ctx, logger, containerID, baseName, watcher, runtimeService)
+				found, recreated, err = waitLogs(ctx, logger, containerID, baseName, dedupWatcher, runtimeService)
 				if err != nil {
 					return err
 				}
@@ -455,7 +461,7 @@ func isContainerRunning(ctx context.Context, logger *klog.Logger, id string, r i
 // waitLogs wait for the next log write. It returns two booleans and an error. The first boolean
 // indicates whether a new log is found; the second boolean if the log file was recreated;
 // the error is error happens during waiting new logs.
-func waitLogs(ctx context.Context, logger *klog.Logger, id string, logName string, w *fsnotify.Watcher, runtimeService internalapi.RuntimeService) (bool, bool, error) {
+func waitLogs(ctx context.Context, logger *klog.Logger, id string, logName string, w *dedupWriteEvents, runtimeService internalapi.RuntimeService) (bool, bool, error) {
 	// no need to wait if the pod is not running
 	if running, err := isContainerRunning(ctx, logger, id, runtimeService); !running {
 		return false, false, err
